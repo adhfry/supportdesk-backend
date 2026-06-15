@@ -8,6 +8,11 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
+type AccessTokenPayload = {
+  sub: number;
+  role: string;
+};
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -39,7 +44,13 @@ export class AuthService {
 
     // Jangan kembalikan password di response
     const { password, ...result } = user;
-    return result;
+
+    // generate jwt
+    const token = await this.jwtService.signAsync({
+      sub: result.id,
+      role: result.role,
+    });
+    return { ...result, token };
   }
 
   async login(dto: LoginDto) {
@@ -60,5 +71,36 @@ export class AuthService {
     // 3. Generate JWT
     const payload = { sub: user.id, role: user.role };
     return await this.jwtService.signAsync(payload);
+  }
+
+  async getCurrentUserFromToken(token: string) {
+    if (!token) {
+      throw new UnauthorizedException('Sesi Login tidak ditemukan');
+    }
+
+    const payload = await this.jwtService.verifyAsync<AccessTokenPayload>(
+      token,
+      {
+        secret: process.env.JWT_SECRET || 'dev_jwt_secret',
+      },
+    );
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User tidak ditemukan');
+    }
+
+    return user;
   }
 }

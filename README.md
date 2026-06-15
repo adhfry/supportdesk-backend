@@ -23,7 +23,16 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+SupportDesk adalah backend NestJS untuk sistem customer service pelacakan paket bermasalah. Fokusnya adalah membuat laporan komplain, mengelola antrian penanganan admin, dan menyimpan status penanganan paket di MySQL, sementara percakapan realtime tetap menggunakan Firebase RTDB.
+
+## Fitur Backend
+
+- Login user dan admin menggunakan HttpOnly cookie.
+- Pembuatan laporan paket bermasalah dengan nomor laporan otomatis `TCK-XXXX`.
+- Antrian laporan `OPEN` untuk admin.
+- Pengambilan laporan oleh admin dengan proteksi race condition.
+- Pembaruan status laporan hingga `CLOSED`.
+- Dokumentasi Swagger tersedia di `/docs`.
 
 ## Project setup
 
